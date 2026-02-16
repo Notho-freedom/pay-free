@@ -1,1 +1,7 @@
 project_id = "kawthgbsjxfvuibhnqug"
+
+[functions.initialize-payment]
+verify_jwt = false
+
+[functions.notchpay-webhook]
+verify_jwt = false

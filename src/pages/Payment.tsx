@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Phone, Loader2 } from "lucide-react";
 import { offers, formatFCFA } from "@/lib/offers";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { toast } from "sonner";
 
@@ -50,12 +51,34 @@ const Payment = () => {
     setErrors({});
     setLoading(true);
 
-    // TODO: call edge function initialize-payment
-    // For now simulate
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke("initialize-payment", {
+        body: {
+          customer_name: form.name,
+          customer_email: form.email,
+          customer_phone: `237${form.phone}`,
+          offer_id: offer.id,
+          offer_name: offer.name,
+          amount: offer.price,
+          payment_provider: form.provider,
+        },
+      });
+
+      if (error) throw error;
+
+      // If NotchPay returns an authorization URL, redirect to it
+      if (data?.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        // Fallback: go to confirmation page
+        navigate(`/confirmation?offre=${offer.id}&ref=${encodeURIComponent(data?.reference || "")}&name=${encodeURIComponent(form.name)}`);
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error("Erreur lors de l'initialisation du paiement. Veuillez réessayer.");
+    } finally {
       setLoading(false);
-      navigate(`/confirmation?offre=${offer.id}&ref=TXN${Date.now()}&name=${encodeURIComponent(form.name)}`);
-    }, 2000);
+    }
   };
 
   const update = (field: string, value: string) => {
