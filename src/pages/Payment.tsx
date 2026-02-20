@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Phone, Loader2 } from "lucide-react";
+import { ArrowLeft, Phone, Loader2, ShieldCheck } from "lucide-react";
 import { offers, formatFCFA } from "@/lib/offers";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -30,7 +29,7 @@ const Payment = () => {
 
   if (!offer) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="flex min-h-screen items-center justify-center px-4 bg-background">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Offre introuvable.</p>
           <Button variant="outline" onClick={() => navigate("/")}>Retour</Button>
@@ -66,11 +65,9 @@ const Payment = () => {
 
       if (error) throw error;
 
-      // If NotchPay returns an authorization URL, redirect to it
       if (data?.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
-        // Fallback: go to confirmation page
         navigate(`/confirmation?offre=${offer.id}&ref=${encodeURIComponent(data?.reference || "")}&name=${encodeURIComponent(form.name)}`);
       }
     } catch (err: any) {
@@ -88,75 +85,104 @@ const Payment = () => {
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
-      <div className="mx-auto max-w-lg">
-        <button onClick={() => navigate("/")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Retour aux offres
+      {/* Background orb */}
+      <div className="fixed top-0 right-0 w-96 h-96 rounded-full blur-[150px] opacity-10 pointer-events-none"
+        style={{ background: "hsl(var(--gold))" }} />
+
+      <div className="mx-auto max-w-lg relative z-10">
+        <button onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Retour
         </button>
 
         {/* Order summary */}
-        <Card className="mb-6 border-primary/20 bg-primary/5">
-          <CardContent className="flex items-center justify-between py-4">
+        <div className="rounded-2xl border mb-6 p-5"
+          style={{ background: "hsl(var(--gold) / 0.05)", borderColor: "hsl(var(--gold) / 0.3)" }}>
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Offre sélectionnée</p>
+              <p className="text-xs text-muted-foreground mb-1">Offre sélectionnée</p>
               <p className="font-semibold text-foreground">{offer.name}</p>
             </div>
-            <p className="text-xl font-bold text-primary">{formatFCFA(offer.price)}</p>
-          </CardContent>
-        </Card>
+            <p className="text-2xl font-bold gradient-text-gold">{formatFCFA(offer.price)}</p>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Informations de paiement</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom complet</Label>
-                <Input id="name" placeholder="Jean Dupont" value={form.name} onChange={(e) => update("name", e.target.value)} />
-                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+        <div className="rounded-2xl border p-6"
+          style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+          <h1 className="text-xl font-bold text-foreground mb-6">Informations de paiement</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-foreground">Nom complet</Label>
+              <Input id="name" placeholder="Votre nom complet" value={form.name}
+                onChange={(e) => update("name", e.target.value)}
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground" />
+              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-foreground">Numéro de téléphone</Label>
+              <div className="flex gap-2">
+                <span className="flex items-center rounded-md border px-3 text-sm text-muted-foreground"
+                  style={{ background: "hsl(var(--muted))", borderColor: "hsl(var(--border))" }}>
+                  +237
+                </span>
+                <Input id="phone" placeholder="6XXXXXXXX" value={form.phone}
+                  onChange={(e) => update("phone", e.target.value)}
+                  className="flex-1 bg-input border-border text-foreground placeholder:text-muted-foreground" />
               </div>
+              {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Numéro de téléphone</Label>
-                <div className="flex gap-2">
-                  <span className="flex items-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">+237</span>
-                  <Input id="phone" placeholder="6XXXXXXXX" value={form.phone} onChange={(e) => update("phone", e.target.value)} className="flex-1" />
-                </div>
-                {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-foreground">Adresse email</Label>
+              <Input id="email" type="email" placeholder="votre@email.com" value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">
+                ⚠️ Utilisez cette même adresse pour accéder à votre formation
+              </p>
+              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="jean@exemple.com" value={form.email} onChange={(e) => update("email", e.target.value)} />
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-              </div>
-
-              <div className="space-y-3">
-                <Label>Mode de paiement</Label>
-                <RadioGroup value={form.provider} onValueChange={(v) => update("provider", v)} className="grid grid-cols-2 gap-3">
-                  <label htmlFor="mtn" className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-colors ${form.provider === "mtn" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/30"}`}>
-                    <RadioGroupItem value="mtn" id="mtn" />
+            <div className="space-y-3">
+              <Label className="text-foreground">Mode de paiement Mobile Money</Label>
+              <RadioGroup value={form.provider} onValueChange={(v) => update("provider", v)} className="grid grid-cols-2 gap-3">
+                {[
+                  { value: "mtn", label: "MTN MoMo", sub: "Mobile Money" },
+                  { value: "orange", label: "Orange Money", sub: "Mobile Money" },
+                ].map(({ value, label, sub }) => (
+                  <label key={value} htmlFor={value}
+                    className="flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-all"
+                    style={{
+                      borderColor: form.provider === value ? "hsl(var(--gold) / 0.6)" : "hsl(var(--border))",
+                      background: form.provider === value ? "hsl(var(--gold) / 0.08)" : "transparent",
+                    }}>
+                    <RadioGroupItem value={value} id={value} />
                     <div>
-                      <p className="font-medium text-foreground text-sm">MTN MoMo</p>
-                      <p className="text-xs text-muted-foreground">Mobile Money</p>
+                      <p className="font-medium text-foreground text-sm">{label}</p>
+                      <p className="text-xs text-muted-foreground">{sub}</p>
                     </div>
                   </label>
-                  <label htmlFor="orange" className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-colors ${form.provider === "orange" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/30"}`}>
-                    <RadioGroupItem value="orange" id="orange" />
-                    <div>
-                      <p className="font-medium text-foreground text-sm">Orange Money</p>
-                      <p className="text-xs text-muted-foreground">Mobile Money</p>
-                    </div>
-                  </label>
-                </RadioGroup>
-              </div>
+                ))}
+              </RadioGroup>
+            </div>
 
-              <Button type="submit" className="w-full gap-2" size="lg" disabled={loading}>
-                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Traitement en cours…</> : <><Phone className="h-4 w-4" /> Payer {formatFCFA(offer.price)}</>}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            <Button type="submit" size="lg"
+              className="w-full py-6 text-base font-semibold rounded-xl text-background"
+              style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)))", border: "none" }}
+              disabled={loading}>
+              {loading
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Traitement en cours…</>
+                : <><Phone className="h-4 w-4" /> Payer {formatFCFA(offer.price)}</>}
+            </Button>
+          </form>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
+          <ShieldCheck className="h-4 w-4" style={{ color: "hsl(var(--gold))" }} />
+          Paiement sécurisé via NotchPay
+        </div>
       </div>
     </div>
   );
