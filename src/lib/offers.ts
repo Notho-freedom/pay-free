@@ -8,37 +8,17 @@ export interface Offer {
 
 export const offers: Offer[] = [
   {
-    id: "basique",
-    name: "Basique",
-    price: 5000,
+    id: "formation-ia",
+    name: "Formation Complète",
+    price: 25000,
+    badge: "Accès à vie",
     features: [
-      "Accès au cours en ligne",
-      "Support par email",
-      "Certificat de formation",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    price: 15000,
-    badge: "Populaire",
-    features: [
-      "Tout le pack Basique",
-      "Accès au groupe WhatsApp privé",
-      "Sessions de questions/réponses",
-      "Ressources téléchargeables",
-    ],
-  },
-  {
-    id: "vip",
-    name: "VIP",
-    price: 30000,
-    features: [
-      "Tout le pack Premium",
-      "Mentorat individuel 1-on-1",
-      "Accès à vie aux mises à jour",
-      "Coaching personnalisé",
-      "Priorité de support",
+      "6 modules vidéo (10–15 min chacun)",
+      "Créer votre avatar IA personnalisé",
+      "Maîtriser Google Flow de A à Z",
+      "Monter des vidéos pro sans caméra",
+      "Workflow clé en main réutilisable",
+      "Support par email inclus",
     ],
   },
 ];
